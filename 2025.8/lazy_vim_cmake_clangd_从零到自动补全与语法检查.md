@@ -123,9 +123,12 @@ LazyVim 提供 **Extras**，一键导入 C/C++ 与 CMake 的整套配置：
    ```vim
    :LazyExtras
    ```
+
 2. 勾选并导入：
+   
    - **lang.clangd**（为 C/C++ 配好 treesitter、clangd、clangd-extensions、nvim-cmp 等）
    - **lang.cmake**（为 CMake 配好 treesitter、neocmake、cmake-tools.nvim 等）
+
 3. 保存并重启 Neovim（或 `:Lazy sync`）。
 
 > **手动方式（可选）**：若你不想用 `:LazyExtras`，也可在 `~/.config/nvim/lua/plugins/` 新建 `extras.lua`，写入：
