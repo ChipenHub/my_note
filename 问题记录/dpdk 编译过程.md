@@ -79,3 +79,98 @@
    ```
    
    → 这时 `make` 能找到系统安装的 DPDK 库，就能编译通过。
+
+
+
+
+
+需要的依赖
+
+## 依赖分类总结
+
+- **必需**：
+  
+  - build-essential
+  
+  - meson, ninja-build, pkg-config
+  
+  - libnuma-dev
+
+- **强烈推荐**（编译例子和常见驱动需要）：
+  
+  - libpcap-dev
+  
+  - libelf-dev
+  
+  - libbsd-dev
+
+- **可选**（功能扩展）：
+  
+  - libjansson-dev（telemetry）
+  
+  - libarchive-dev（归档工具）
+  
+  - libssl-dev（crypto PMD）
+  
+  - python3-pyelftools（分析工具）
+  
+  ```shell
+  sudo apt update
+  sudo apt install build-essential meson ninja-build pkg-config \
+                   libnuma-dev libpcap-dev libelf-dev \
+                   libbsd-dev libjansson-dev libarchive-dev \
+                   libssl-dev python3-pyelftools
+  ```
+
+检查安装是否完成：
+
+```shell
+# 这两条都能正常输出而不是报错
+pkg-config --cflags libdpdk
+pkg-config --libs libdpdk
+```
+
+
+
+系统配置巨页：写入`vm.nr_hugepages=512   # 2MB页，约1GB`
+
+应用：`sudo sysctl --system`
+
+**或者写进旧版配置文件 （`/etc/sysctl.conf`）**
+
+应用：`sudo sysctl -p`
+
+
+
+检查输出：`cat /proc/meminfo | grep Huge`
+
+
+
+测试运行 l2fwd：`sudo ./l2fwd-shared -l 0-3 -n 1 -- -p 1 -P`
+
+
+
+CMakeFiles:
+
+```cpp
+chipen@ubuntu:~$ cat CMakeLists.txt
+# 指定 CMake 最低版本要求
+cmake_minimum_required(VERSION 3.10)
+
+# 定义项目名称和语言
+project(tstack C)
+
+# 查找 pkg-config（因为我们需要用它来获取 DPDK 的信息）
+find_package(PkgConfig REQUIRED)
+
+# 使用 pkg-config 查找 libdpdk
+pkg_check_modules(DPDK REQUIRED libdpdk)
+
+# 添加可执行文件
+add_executable(ustack tstack.c arp.h)
+
+# 链接 DPDK 库并设置编译选项
+target_include_directories(ustack PRIVATE ${DPDK_INCLUDE_DIRS})
+target_link_libraries(ustack PRIVATE ${DPDK_LIBRARIES})
+target_compile_options(ustack PRIVATE ${DPDK_CFLAGS})
+```
